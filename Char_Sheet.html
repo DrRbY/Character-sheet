@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Sheet</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items to the top */
+            padding: 2rem; /* Add some padding around the whole sheet */
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Max width for larger screens */
+            display: flex;
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center items horizontally */
+            gap: 1.5rem; /* Increased space between elements */
+        }
+        .box { /* General styling for all boxes */
+            background-color: #ffffff; /* White background for boxes */
+            padding: 1.5rem 2rem;
+            border-radius: 0.75rem; /* Rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            flex-shrink: 0; /* Prevent shrinking */
+            width: 100%; /* All main boxes take full container width */
+            max-width: 1200px; /* Max width for consistency */
+        }
+        .headline-box {
+            font-size: 2.25rem; /* Larger font for headline */
+            font-weight: bold;
+            color: #333;
+            text-align: center; /* Center headline text */
+        }
+        .info-guidance {
+            width: 100%;
+            max-width: 800px; /* Slightly narrower for readability */
+            text-align: center;
+            font-size: 0.95rem;
+            color: #666;
+            margin-top: -0.5rem; /* Pull it slightly closer to the headline */
+            margin-bottom: 1rem; /* Space before the next box */
+            line-height: 1.5;
+        }
+        .single-input-box { /* Style for standalone input boxes like Character Name */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center label and input */
+            font-size: 1.125rem; /* Slightly larger text for labels */
+            color: #555;
+            padding: 1.5rem 2rem; /* Consistent padding with other boxes */
+            border-radius: 0.75rem; /* Consistent rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Consistent shadow */
+            background-color: #ffffff; /* Consistent background */
+            width: 100%; /* Take full width of its container */
+            max-width: 400px; /* A more appropriate max-width for a single input field box */
+        }
+        .single-input-box label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        /* Styling for all input fields and textareas */
+        input[type="text"], textarea {
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e0; /* Light border */
+            border-radius: 0.5rem; /* Rounded input field */
+            width: 100%; /* Take full width of its parent */
+            font-size: 1.125rem;
+            color: #333;
+            background-color: #f8fafc; /* Slightly off-white background for input */
+            transition: border-color 0.2s;
+            text-align: left; /* Default to left for inputs in fields */
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1; /* Purple border on focus */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* Light purple shadow on focus */
+        }
+
+        .section-box { /* Styling for main content sections like Basic Info and Appearance */
+            margin-top: 1rem; /* Space from elements above */
+        }
+        .section-box h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem; /* More space below heading */
+            text-align: center; /* Center section titles */
+        }
+        .info-grid { /* Generic grid for fields within a section */
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Two columns, responsive */
+            gap: 1.5rem; /* Space between grid items */
+        }
+        .info-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .info-field label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 0.5rem;
+            text-align: left; /* Keep labels left-aligned within their fields */
+        }
+        .info-field input[type="text"], .info-field textarea {
+            text-align: left; /* Keep text left-aligned in inputs within these fields */
+        }
+        .info-field textarea {
+            min-height: 100px; /* Default height for textareas */
+            resize: vertical; /* Allow vertical resizing */
+        }
+        /* Make full-width fields span all columns in the grid */
+        .info-field.full-width-field {
+            grid-column: 1 / -1;
+        }
+
+        .generate-btn {
+            background-color: #6366f1; /* Purple */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            margin-top: 0.75rem;
+            align-self: flex-start; /* Align button to start of field */
+        }
+        .generate-btn:hover {
+            background-color: #5850ed;
+            transform: translateY(-1px);
+        }
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+        .generate-btn:disabled {
+            background-color: #a78bfa; /* Lighter purple when disabled */
+            cursor: not-allowed;
+        }
+
+        /* Removed .export-button-container and .copy-message styles */
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem; /* Less padding on small screens */
+                gap: 1rem; /* Less gap on small screens */
+            }
+            .box, .single-input-box {
+                padding: 1rem 1.25rem; /* Smaller padding for boxes on small screens */
+                max-width: 100%; /* Take full width */
+            }
+            .headline-box {
+                font-size: 1.5rem;
+            }
+            .section-box h2 {
+                font-size: 1.3rem;
+            }
+            .info-grid {
+                grid-template-columns: 1fr; /* Single column on small screens */
+            }
+            .generate-btn { /* Only generate-btn remains with this style */
+                width: 100%; /* Full width button on small screens */
+                text-align: center;
+                align-self: center; /* Center button when stacked */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Headline -->
+        <div class="box headline-box">
+            Character Sheet
+        </div>
+
+        <!-- General Info Guidance -->
+        <div class="info-guidance">
+            Feel free to fill out as much or as little detail as you like for each field. If a section isn't applicable to your character, you can simply leave it blank or write "N/A". If you need ideas, just ask me to help you brainstorm!
+        </div>
+
+        <!-- Summary Page Box -->
+        <div class="box section-box">
+            <h2>Character Summary</h2>
+            <div class="info-grid">
+                <div class="info-field full-width-field">
+                    <label for="summaryName">Character Name</label>
+                    <input type="text" id="summaryName" placeholder="A brief name for quick reference.">
+                </div>
+                <div class="info-field">
+                    <label for="summaryRaceClass">Race & Class</label>
+                    <input type="text" id="summaryRaceClass" placeholder="e.g., Human Fighter, Elven Wizard">
+                </div>
+                <div class="info-field">
+                    <label for="summaryAgeGender">Age Group & Gender</label>
+                    <input type="text" id="summaryAgeGender" placeholder="e.g., Adult Male, Young Non-binary">
+                </div>
+                <div class="info-field full-width-field">
+                    <label for="summaryPersonality">Core Personality</label>
+                    <textarea id="summaryPersonality" rows="3" placeholder="A few keywords or a very brief sentence about their key traits."></textarea>
+                </div>
+                <div class="info-field full-width-field">
+                    <label for="summaryBackstory">Backstory Snippet</label>
+                    <textarea id="summaryBackstory" rows="5" placeholder="A brief, high-level summary of their most defining past events or origin."></textarea>
+                    <button class="generate-btn" id="generateSummaryBtn">Summarize Backstory ✨</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Information Box -->
+        <div class="box section-box">
+            <h2>Basic Information</h2>
+            <div class="info-grid">
+                <!-- Race Information -->
+                <div class="info-field">
+                    <label for="race">Race</label>
+                    <input type="text" id="race" placeholder="e.g., Human, Elf, Dwarf">
+                </div>
+                <div class="info-field">
+                    <label for="raceDescription">Race Description</label>
+                    <textarea id="raceDescription" rows="4" placeholder="Brief description of the race's traits, history, or common characteristics."></textarea>
+                    <button class="generate-btn" id="generateRaceDescriptionBtn">Generate Description ✨</button>
+                </div>
+
+                <!-- Subrace Information -->
+                <div class="info-field">
+                    <label for="subrace">Subrace (Optional)</label>
+                    <input type="text" id="subrace" placeholder="e.g., Hill Dwarf, High Elf">
+                </div>
+                <div class="info-field">
+                    <label for="subraceDescription">Subrace Description (Optional)</label>
+                    <textarea id="subraceDescription" rows="4" placeholder="Brief description of the subrace's unique traits or cultural aspects."></textarea>
+                    <button class="generate-btn" id="generateSubraceDescriptionBtn">Generate Description ✨</button>
+                </div>
+
+                <!-- Age Group Information -->
+                <div class="info-field">
+                    <label for="ageGroup">Age Group</label>
+                    <input type="text" id="ageGroup" placeholder="e.g., Young, Adult, Elder, Child, Teenager">
+                </div>
+
+                <!-- Gender Information -->
+                <div class="info-field">
+                    <label for="gender">Gender</label>
+                    <input type="text" id="gender" placeholder="e.g., Male, Female, Non-binary">
+                </div>
+            </div>
+        </div>
+
+        <!-- Character Name box moved below Basic Information -->
+        <div class="single-input-box">
+            <label for="characterName">Character Name</label>
+            <input type="text" id="characterName" placeholder="Enter character name">
+        </div>
+
+        <!-- Appearance Box -->
+        <div class="box section-box">
+            <h2>Appearance</h2>
+            <div class="info-grid">
+                <!-- Hair Color -->
+                <div class="info-field">
+                    <label for="hairColor">Hair Color</label>
+                    <input type="text" id="hairColor" placeholder="e.g., Black, Brown, Blonde, Red, White">
+                </div>
+                <!-- Hair Style -->
+                <div class="info-field">
+                    <label for="hairStyle">Hair Style</label>
+                    <input type="text" id="hairStyle" placeholder="e.g., Long, Short, Braided, Curly, Bald">
+                </div>
+                <!-- Eye Color -->
+                <div class="info-field">
+                    <label for="eyeColor">Eye Color</label>
+                    <input type="text" id="eyeColor" placeholder="e.g., Blue, Green, Brown, Hazel">
+                </div>
+                <!-- Complexion -->
+                <div class="info-field">
+                    <label for="complexion">Complexion</label>
+                    <input type="text" id="complexion" placeholder="e.g., Pale, Tanned, Dark, Freckled, Scarred">
+                </div>
+                <!-- Height -->
+                <div class="info-field">
+                    <label for="height">Height</label>
+                    <input type="text" id="height" placeholder="e.g., 5' 9&quot;, 175 cm">
+                </div>
+                <!-- Weight -->
+                <div class="info-field">
+                    <label for="weight">Weight</label>
+                    <input type="text" id="weight" placeholder="e.g., 150 lbs, 68 kg">
+                </div>
+                <!-- Build -->
+                <div class="info-field">
+                    <label for="build">Build</label>
+                    <input type="text" id="build" placeholder="e.g., Athletic, Slender, Stocky, Muscular">
+                </div>
+                <!-- Distinguishing Marks -->
+                <div class="info-field">
+                    <label for="distinguishingMarks">Distinguishing Marks</label>
+                    <textarea id="distinguishingMarks" rows="4" placeholder="e.g., Scars, Tattoos, Birthmarks, Missing Limbs, Unique Facial Features"></textarea>
+                </div>
+                <!-- Other Unique Features/Descriptions -->
+                <div class="info-field full-width-field">
+                    <label for="otherAppearance">Other Unique Features/Descriptions</label>
+                    <textarea id="otherAppearance" rows="6" placeholder="Any other unique physical traits, mannerisms, or general descriptions of their appearance."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Information Box -->
+        <div class="box section-box">
+            <h2>Class Information</h2>
+            <div class="info-grid">
+                <!-- Class -->
+                <div class="info-field">
+                    <label for="class">Class</label>
+                    <input type="text" id="class" placeholder="e.g., Fighter, Rogue, Wizard">
+                </div>
+                <div class="info-field">
+                    <label for="classDescription">Class Description</label>
+                    <textarea id="classDescription" rows="4" placeholder="Brief description of the class's core abilities, roles, or common themes."></textarea>
+                </div>
+
+                <!-- Subclass Information -->
+                <div class="info-field">
+                    <label for="subclass">Subclass (Optional)</label>
+                    <input type="text" id="subclass" placeholder="e.g., Battle Master, Thief, Abjuration Wizard">
+                </div>
+                <div class="info-field">
+                    <label for="subclassDescription">Subclass Description (Optional)</label>
+                    <textarea id="subclassDescription" rows="4" placeholder="Brief description of the subclass's specialized abilities or unique features."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gear Information Box -->
+        <div class="box section-box">
+            <h2>Gear</h2>
+            <div class="info-grid">
+                <!-- Armor/Clothes -->
+                <div class="info-field full-width-field">
+                    <label for="armorClothes">Armor / Clothes</label>
+                    <textarea id="armorClothes" rows="6" placeholder="Describe the character's full set of armor or everyday clothing, including materials, style, condition, and any unique features."></textarea>
+                </div>
+
+                <!-- Cloak/Outerwear -->
+                <div class="info-field full-width-field">
+                    <label for="cloakOuterwear">Cloak / Outerwear</label>
+                    <textarea id="cloakOuterwear" rows="4" placeholder="Describe any cloak, coat, or other outer garment, including its material, color, and any significant details or embellishments."></textarea>
+                </div>
+
+                <!-- Boots -->
+                <div class="info-field full-width-field">
+                    <label for="boots">Boots</label>
+                    <textarea id="boots" rows="4" placeholder="Describe the character's footwear, including type, material, color, and any significant wear or magical properties."></textarea>
+                </div>
+
+                <!-- Primary Weapon/Tool -->
+                <div class="info-field full-width-field">
+                    <label for="primaryWeaponTool">Primary Weapon / Tool</label>
+                    <textarea id="primaryWeaponTool" rows="5" placeholder="Provide a detailed description of the character's main weapon or primary tool. Include its type, materials, size, any special markings, and its perceived condition or history."></textarea>
+                </div>
+
+                <!-- Secondary Weapon/Tool -->
+                <div class="info-field full-width-field">
+                    <label for="secondaryWeaponTool">Secondary Weapon / Tool (Optional)</label>
+                    <textarea id="secondaryWeaponTool" rows="5" placeholder="Describe any secondary weapon or auxiliary tool the character carries. Detail its type, materials, and how it is typically used or carried."></textarea>
+                </div>
+
+                <!-- Bags / Pouches -->
+                <div class="info-field full-width-field">
+                    <label for="bags">Bags / Pouches</label>
+                    <textarea id="bags" rows="5" placeholder="Describe any bags, pouches, backpacks, or other containers the character uses, including their appearance, materials, and what general type of items they hold."></textarea>
+                </div>
+
+                <!-- Jewelry / Accessories -->
+                <div class="info-field full-width-field">
+                    <label for="jewelryAccessories">Jewelry / Accessories</label>
+                    <textarea id="jewelryAccessories" rows="4" placeholder="Describe any rings, necklaces, bracelets, belts, gloves, or other small worn items."></textarea>
+                </div>
+
+                <!-- Tools / Kits -->
+                <div class="info-field full-width-field">
+                    <label for="toolsKits">Tools / Kits</label>
+                    <textarea id="toolsKits" rows="4" placeholder="Describe any specialized tools (e.g., healer's kit, lockpicks, musical instrument) the character carries."></textarea>
+                </div>
+
+                <!-- Notable Trinkets / Mementos -->
+                <div class="info-field full-width-field">
+                    <label for="trinketsMementos">Notable Trinkets / Mementos</label>
+                    <textarea id="trinketsMementos" rows="4" placeholder="Describe any small, non-functional items that are important for character backstory or personality."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backstory Box -->
+        <div class="box section-box">
+            <h2>Backstory</h2>
+            <div class="info-grid">
+                <!-- Family -->
+                <div class="info-field full-width-field">
+                    <label for="family">Family</label>
+                    <textarea id="family" rows="6" placeholder="Describe your character's immediate family members, their relationships, and their current status (e.g., living, deceased, estranged)."></textarea>
+                </div>
+
+                <!-- Family History -->
+                <div class="info-field full-width-field">
+                    <label for="familyHistory">Family History</label>
+                    <textarea id="familyHistory" rows="8" placeholder="Detail your character's family background, including their heritage, lineage, notable achievements, or any significant events that shaped their family."></textarea>
+                </div>
+
+                <!-- Childhood -->
+                <div class="info-field full-width-field">
+                    <label for="childhood">Childhood</label>
+                    <textarea id="childhood" rows="8" placeholder="Describe your character's upbringing, key experiences from their early life, and any events or people that had a lasting impact on them during their childhood."></textarea>
+                </div>
+
+                <!-- General Character History -->
+                <div class="info-field full-width-field">
+                    <label for="characterHistory">General Character History</label>
+                    <textarea id="characterHistory" rows="12" placeholder="Write the full backstory of your character here, encompassing their life from adolescence to the present, including major events, significant relationships, motivations, and how they came to be where they are now."></textarea>
+                </div>
+
+                <!-- Motivations & Goals -->
+                <div class="info-field full-width-field">
+                    <label for="motivationsGoals">Motivations & Goals</label>
+                    <textarea id="motivationsGoals" rows="6" placeholder="What drives your character forward? What are their short-term and long-term aspirations, desires, or objectives?"></textarea>
+                </div>
+
+                <!-- Beliefs & Values -->
+                <div class="info-field full-width-field">
+                    <label for="beliefsValues">Beliefs & Values</label>
+                    <textarea id="beliefsValues" rows="6" placeholder="What principles, ideologies, or moral codes does your character live by? What do they consider right or wrong, important, or sacred?"></textarea>
+                </div>
+
+                <!-- Key Relationships (Non-Family) -->
+                <div class="info-field full-width-field">
+                    <label for="keyRelationships">Key Relationships (Non-Family)</label>
+                    <textarea id="keyRelationships" rows="8" placeholder="Who are the most influential people in your character's life outside of their family (e.g., friends, mentors, rivals, significant others), and how have these relationships shaped them?"></textarea>
+                </div>
+
+                <!-- Defining Moments / Turning Points -->
+                <div class="info-field full-width-field">
+                    <label for="definingMoments">Defining Moments / Turning Points</label>
+                    <textarea id="definingMoments" rows="8" placeholder="Describe any specific events or moments that drastically altered your character's path, changed their perspective, or led them to their current situation."></textarea>
+                </div>
+
+                <!-- Personality Traits Box -->
+                <div class="info-field full-width-field">
+                    <label for="personalityTraits">Personality Traits</label>
+                    <textarea id="personalityTraits" rows="8" placeholder="What are your character's core personality traits? Consider their demeanor, habits, quirks, and how they typically interact with others."></textarea>
+                </div>
+
+                <!-- Strengths Box -->
+                <div class="info-field full-width-field">
+                    <label for="strengths">Strengths</label>
+                    <textarea id="strengths" rows="6" placeholder="What are your character's notable strengths, both physical and mental? Consider skills, abilities, and positive attributes."></textarea>
+                </div>
+
+                <!-- Weaknesses Box -->
+                <div class="info-field full-width-field">
+                    <label for="weaknesses">Weaknesses</label>
+                    <textarea id="weaknesses" rows="6" placeholder="What are your character's significant weaknesses, flaws, or vulnerabilities? This could be physical, mental, or emotional."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Gemini API Key (Leave empty, handled by Canvas environment) ---
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        // --- Helper function to enable/disable button and show loading text ---
+        function setButtonState(button, isLoading, originalText) {
+            if (isLoading) {
+                button.textContent = 'Generating...';
+                button.disabled = true;
+            } else {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // --- Generate Race/Subrace Description Function ---
+        async function generateDescription(type) {
+            const raceInput = document.getElementById('race');
+            const subraceInput = document.getElementById('subrace');
+            const raceDescriptionTextarea = document.getElementById('raceDescription');
+            const subraceDescriptionTextarea = document.getElementById('subraceDescription');
+            const raceBtn = document.getElementById('generateRaceDescriptionBtn');
+            const subraceBtn = document.getElementById('generateSubraceDescriptionBtn');
+
+            let prompt = "";
+            let targetTextarea = null;
+            let targetButton = null;
+            let originalButtonText = '';
+
+            if (type === 'race') {
+                const raceName = raceInput.value.trim();
+                if (!raceName) {
+                    raceDescriptionTextarea.value = "Please enter a Race name first.";
+                    return;
+                }
+                prompt = `Generate a brief and descriptive paragraph (around 50-100 words) for a fantasy RPG race named "${raceName}". Focus on their common traits, appearance, and general cultural aspects.`;
+                targetTextarea = raceDescriptionTextarea;
+                targetButton = raceBtn;
+                originalButtonText = 'Generate Description ✨';
+            } else if (type === 'subrace') {
+                const raceName = raceInput.value.trim();
+                const subraceName = subraceInput.value.trim();
+                if (!subraceName) {
+                    subraceDescriptionTextarea.value = "Please enter a Subrace name first.";
+                    return;
+                }
+                prompt = `Given the main race is "${raceName}", generate a brief and descriptive paragraph (around 50-100 words) for a fantasy RPG subrace named "${subraceName}". Focus on their unique traits, variations from the main race, and specific cultural aspects.`;
+                targetTextarea = subraceDescriptionTextarea;
+                targetButton = subraceBtn;
+                originalButtonText = 'Generate Description ✨';
+            } else {
+                return; // Invalid type
+            }
+
+            setButtonState(targetButton, true, originalButtonText);
+            targetTextarea.value = "Generating description...";
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    targetTextarea.value = text;
+                } else {
+                    targetTextarea.value = "Failed to generate description. Please try again.";
+                }
+            } catch (error) {
+                console.error("Error generating description:", error);
+                targetTextarea.value = "Error generating description. Check console for details.";
+            } finally {
+                setButtonState(targetButton, false, originalButtonText);
+            }
+        }
+
+
+        // --- Summarize Backstory Function ---
+        async function summarizeBackstory() {
+            const family = document.getElementById('family').value.trim();
+            const familyHistory = document.getElementById('familyHistory').value.trim();
+            const childhood = document.getElementById('childhood').value.trim();
+            const characterHistory = document.getElementById('characterHistory').value.trim();
+            const motivationsGoals = document.getElementById('motivationsGoals').value.trim();
+            const beliefsValues = document.getElementById('beliefsValues').value.trim();
+            const keyRelationships = document.getElementById('keyRelationships').value.trim();
+            const definingMoments = document.getElementById('definingMoments').value.trim();
+            const summaryBackstoryTextarea = document.getElementById('summaryBackstory');
+            const summaryBtn = document.getElementById('generateSummaryBtn');
+
+            const allBackstoryContent = [
+                family ? `Family: ${family}` : '',
+                familyHistory ? `Family History: ${familyHistory}` : '',
+                childhood ? `Childhood: ${childhood}` : '',
+                characterHistory ? `General History: ${characterHistory}` : '',
+                motivationsGoals ? `Motivations & Goals: ${motivationsGoals}` : '',
+                beliefsValues ? `Beliefs & Values: ${beliefsValues}` : '',
+                keyRelationships ? `Key Relationships (Non-Family): ${keyRelationships}` : '',
+                definingMoments ? `Defining Moments: ${definingMoments}` : ''
+            ].filter(Boolean).join('\n\n'); // Join only non-empty parts
+
+            if (!allBackstoryContent) {
+                summaryBackstoryTextarea.value = "Please fill out some backstory information before summarizing.";
+                return;
+            }
+
+            const prompt = `Summarize the following character backstory into a very brief snippet (around 50-100 words), highlighting the most important defining aspects and events. Do not invent new information.\n\n${allBackstoryContent}`;
+
+            setButtonState(summaryBtn, true, 'Summarize Backstory ✨');
+            summaryBackstoryTextarea.value = "Generating summary...";
+
+            try {
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                const payload = { contents: chatHistory };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    summaryBackstoryTextarea.value = text;
+                } else {
+                    summaryBackstoryTextarea.value = "Failed to generate summary. Please try again.";
+                }
+            } catch (error) {
+                console.error("Error generating summary:", error);
+                summaryBackstoryTextarea.value = "Error generating summary. Check console for details.";
+            } finally {
+                setButtonState(summaryBtn, false, 'Summarize Backstory ✨');
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('generateRaceDescriptionBtn').addEventListener('click', () => generateDescription('race'));
+            document.getElementById('generateSubraceDescriptionBtn').addEventListener('click', () => generateDescription('subrace'));
+            document.getElementById('generateSummaryBtn').addEventListener('click', summarizeBackstory);
+        });
+    </script>
+</body>
+</html>
